@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Database, ArrowUpRight } from 'lucide-react';
+import { LayoutDashboard, Database, ShieldAlert, Percent, Activity } from 'lucide-react';
 import DashboardView from './components/DashboardView';
 import ProductCatalog from './components/ProductCatalog';
 import ProductModal from './components/ProductModal';
+import CacheInspector from './components/CacheInspector';
+import CouponManager from './components/CouponManager';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -75,7 +77,6 @@ export default function App() {
 
       if (response.ok) {
         if (searchMode === 'semantic') {
-          // Semantic search returns a flat array of matches
           setProducts(data);
           setPagination(null);
         } else {
@@ -107,7 +108,6 @@ export default function App() {
         setLowStockCount(data.lowStockCount);
       }
     } catch (err) {
-      // Fallback if stats API is not implemented yet
       console.warn('Stats API failed, falling back to manual catalog checks.', err);
     }
   };
@@ -121,7 +121,7 @@ export default function App() {
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery, selectedCategory, currentPage, searchMode]);
 
-  // Fetch dashboard stats on mount and whenever catalog is modified
+  // Fetch dashboard stats on mount
   useEffect(() => {
     fetchStats();
   }, []);
@@ -224,39 +224,57 @@ export default function App() {
   const clearCart = () => setCart([]);
 
   const handleCheckoutSuccess = (msg) => {
-    // Refresh products and stats since inventories changed
     fetchProducts();
     fetchStats();
   };
 
   return (
-    <div style={{ paddingBottom: '4rem' }}>
-      {/* Navigation Header */}
-      <header className="navbar">
-        <div className="nav-brand">
-          ⚡ HighEngine <span>REST API</span>
+    <div className="app-layout">
+      {/* Left Navigation Sidebar */}
+      <aside className="sidebar">
+        <div className="sidebar-brand">
+          <Activity size={22} className="brand-icon" />
+          <span>HighEngine <strong>Console</strong></span>
         </div>
-        <div className="nav-links">
-          <button 
-            className={`nav-link ${activeTab === 'dashboard' ? 'active' : ''}`}
-            onClick={() => setActiveTab('dashboard')}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-          >
-            <LayoutDashboard size={16} /> Dashboard
-          </button>
-          <button 
-            className={`nav-link ${activeTab === 'catalog' ? 'active' : ''}`}
-            onClick={() => setActiveTab('catalog')}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-          >
-            <Database size={16} /> Inventory Catalog
-          </button>
-        </div>
-      </header>
 
-      {/* Main Container */}
-      <main className="dashboard-container">
-        {activeTab === 'dashboard' ? (
+        <nav className="sidebar-nav">
+          <button 
+            className={`sidebar-link ${activeTab === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setActiveTab('dashboard')}
+          >
+            <LayoutDashboard size={18} /> Dashboard
+          </button>
+          <button 
+            className={`sidebar-link ${activeTab === 'catalog' ? 'active' : ''}`}
+            onClick={() => setActiveTab('catalog')}
+          >
+            <Database size={18} /> Catalog Inventory
+          </button>
+          <button 
+            className={`sidebar-link ${activeTab === 'cache' ? 'active' : ''}`}
+            onClick={() => setActiveTab('cache')}
+          >
+            <ShieldAlert size={18} /> Cache Inspector
+          </button>
+          <button 
+            className={`sidebar-link ${activeTab === 'coupons' ? 'active' : ''}`}
+            onClick={() => setActiveTab('coupons')}
+          >
+            <Percent size={18} /> Coupon Discounts
+          </button>
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className="status-label">
+            <span className="pulse-dot"></span> API Gateway Online
+          </div>
+          <div className="version-tag">v1.2.0 (Carbon Carbon)</div>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="content-area">
+        {activeTab === 'dashboard' && (
           <DashboardView 
             productsCount={totalProducts} 
             lowStockCount={lowStockCount} 
@@ -267,7 +285,9 @@ export default function App() {
             clearCart={clearCart}
             onCheckoutSuccess={handleCheckoutSuccess}
           />
-        ) : (
+        )}
+        
+        {activeTab === 'catalog' && (
           <ProductCatalog
             products={products}
             pagination={pagination}
@@ -284,9 +304,17 @@ export default function App() {
             goToPage={(p) => setCurrentPage(p)}
           />
         )}
+
+        {activeTab === 'cache' && (
+          <CacheInspector addApiLog={addApiLog} />
+        )}
+
+        {activeTab === 'coupons' && (
+          <CouponManager addApiLog={addApiLog} />
+        )}
       </main>
 
-      {/* Add / Edit Form Modal */}
+      {/* Product Editor Modal */}
       <ProductModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}

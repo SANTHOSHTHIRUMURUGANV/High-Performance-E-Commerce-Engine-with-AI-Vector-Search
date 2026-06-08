@@ -5,6 +5,8 @@ import connectDB from './config/db.js';
 import { connectRedis } from './config/redis.js';
 import productRoutes from './routes/productRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
+import cacheRoutes from './routes/cacheRoutes.js';
+import discountRoutes from './routes/discountRoutes.js';
 
 dotenv.config();
 
@@ -21,6 +23,8 @@ app.use(express.json());
 // API Routes
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/cache', cacheRoutes);
+app.use('/api/discounts', discountRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
