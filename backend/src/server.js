@@ -1,3 +1,7 @@
+/**
+ * Express Server Entry Point
+ * Initializes middleware, routes, and database connections.
+ */
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
